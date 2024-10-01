@@ -231,19 +231,19 @@ void dance(){
   delay(100);
   for (int j = 0; j < 3; j++){
     servo_elbow(2350);
-    delay(100);
+    delay(50);
     servo_body_ex(750);
-    delay(100);
+    delay(50);
     servo_elbow(pos_init[4]);
-    delay(100);
+    delay(50);
     servo_body_ex(1200);
-    delay(100);
+    delay(50);
     servo_elbow(2350);
-    delay(100);
+    delay(50);
     servo_body_ex(pos_init[0]);
-    delay(100);
+    delay(50);
     servo_elbow(pos_init[4]);
-    delay(100);
+    delay(50);
   }
   servo_shoulder(pos_init[3]);
   delay(100);
