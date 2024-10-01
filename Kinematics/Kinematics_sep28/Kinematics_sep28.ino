@@ -172,7 +172,7 @@ void servo_gripper_ex(const int new_pos) {
 // Happy state: wave end-effector and do fake button press
 void happyStateAction() {
   int bodyPos = 2200;
-  Serial.println("Switching to Happy playlist");
+  Serial.println("happy");
   pressButton(bodyPos);  // Perform fake button press
   waveEndEffector();  // Perform wave motion
 }
@@ -180,21 +180,21 @@ void happyStateAction() {
 // Dancy state: fake button press, more dynamic motion
 void dancyStateAction() {
   int bodyPos = 2250;
-  Serial.println("Switching to Dancy playlist");
+  Serial.println("dancy");
   pressButton(bodyPos);
 }
 
 // Talking state
 void talkingStateAction() {
   int bodyPos = 2150;
-  Serial.println("Switching to Talking playlist");
+  Serial.println("talking");
   pressButton(bodyPos);
 }
 
 // Bored state
 void boredStateAction() {
   int bodyPos = 2100;
-  Serial.println("Switching to Bored playlist");
+  Serial.println("bored");
   pressButton(bodyPos);
 }
 
