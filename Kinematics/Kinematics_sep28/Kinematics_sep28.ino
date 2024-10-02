@@ -23,12 +23,12 @@ const int pos_move[] = {2200, 1500, 2000, 1100, 2300, 1600};
 
 // Variables for FSM and emotions
 enum Emotion {HAPPY, DANCY, TALKING, BORED};  // States for FSM
-Emotion currentEmotion = BORED;              // Default state
+Emotion currentEmotion = TALKING;              // Default state
 
 //Servo update function
-void servo_body_ex(const int new_pos) {
+void servo_body_ex(const int new_pos, int delta) {
 
-  int diff, steps, now, CurrPwm, NewPwm, delta = 6;
+  int diff, steps, now, CurrPwm, NewPwm;
 
   //current servo value
   now = curr_pos[0];
@@ -172,44 +172,47 @@ void servo_gripper_ex(const int new_pos) {
 // Happy state: wave end-effector and do fake button press
 void happyStateAction() {
   int bodyPos = 2200;
-  Serial.println("happy");
-  pressButton(bodyPos);  // Perform fake button press
+  String mood = "happy";
+  pressButton(bodyPos, mood);  // Perform fake button press
   waveEndEffector();  // Perform wave motion
 }
 
 // Dancy state: fake button press, more dynamic motion
 void dancyStateAction() {
   int bodyPos = 2250;
-  Serial.println("dancy");
-  pressButton(bodyPos);
+  String mood = "dancy";
+  pressButton(bodyPos, mood);
+  dance();
 }
 
 // Talking state
 void talkingStateAction() {
   int bodyPos = 2150;
-  Serial.println("talking");
-  pressButton(bodyPos);
+  String mood = "talking";
+  pressButton(bodyPos, mood);
 }
 
 // Bored state
 void boredStateAction() {
   int bodyPos = 2100;
-  Serial.println("bored");
-  pressButton(bodyPos);
+  String mood = "bored";
+  pressButton(bodyPos, mood);
+  boredMovement();
 }
 
 // Fake button press motion
-void pressButton(int posButton) {
+void pressButton(int posButton, String mood) {
   servo_shoulder(2100);
   delay(100);
   servo_elbow(2350);
   delay(100);
-  servo_body_ex(posButton);
+  servo_body_ex(posButton, 6);
   servo_elbow(2150);
   delay(100);
+  Serial.println(mood);
   servo_elbow(2350);
   delay(100);
-  servo_body_ex(pos_init[0]);
+  servo_body_ex(pos_init[0], 6);
   delay(100);
   servo_elbow(pos_init[4]);
   delay(100);
@@ -217,10 +220,12 @@ void pressButton(int posButton) {
 
 // Wave end-effector motion
 void waveEndEffector() {
+  servo_shoulder(1200);
+  delay(100);
   for(int i = 0; i < 3; i++) {
-    servo_shoulder(1000);
+    servo_elbow(2250);
     delay(100);
-    servo_shoulder(1650);
+    servo_elbow(1150);
     delay(100);
   }
   servo_shoulder(pos_init[3]);
@@ -232,15 +237,15 @@ void dance(){
   for (int j = 0; j < 3; j++){
     servo_elbow(2350);
     delay(50);
-    servo_body_ex(750);
+    servo_body_ex(750, 10);
     delay(50);
     servo_elbow(pos_init[4]);
     delay(50);
-    servo_body_ex(1200);
+    servo_body_ex(1200, 10);
     delay(50);
     servo_elbow(2350);
     delay(50);
-    servo_body_ex(pos_init[0]);
+    servo_body_ex(pos_init[0], 10);
     delay(50);
     servo_elbow(pos_init[4]);
     delay(50);
@@ -262,7 +267,7 @@ void boredMovement(){
   delay(100);
   servo_shoulder(1850);
   delay(100);
-  servo_body_ex(1850);
+  servo_body_ex(1850, 6);
   delay(100);
   servo_gripper_ex(600);
   delay(100);
@@ -270,9 +275,9 @@ void boredMovement(){
   delay(100);
   servo_gripper_ex(800);
   delay(100);
-  servo_body_ex(700);
+  servo_body_ex(700, 6);
   delay(500);
-  servo_body_ex(1850);
+  servo_body_ex(1850, 6);
   delay(100);
   servo_gripper_ex(600);
   delay(100);
@@ -280,7 +285,7 @@ void boredMovement(){
   delay(100);
   servo_gripper_ex(pos_init[5]);
   delay(100);
-  servo_body_ex(pos_init[0]);
+  servo_body_ex(pos_init[0], 6);
   delay(100);
   servo_elbow(pos_init[4]);
   delay(100);

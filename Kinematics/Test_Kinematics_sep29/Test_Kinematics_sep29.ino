@@ -160,10 +160,12 @@ void servo_gripper_ex(const int new_pos) {
 
 // Wave end-effector motion
 void waveEndEffector() {
-  for (int i = 0; i < 3; i++) {
-    servo_shoulder(1000);
+  servo_shoulder(1000);
+  delay(100);
+  for(int i = 0; i < 3; i++) {
+    servo_elbow(2350);
     delay(100);
-    servo_shoulder(1650);
+    servo_elbow(2150);
     delay(100);
   }
   servo_shoulder(pos_init[3]);
