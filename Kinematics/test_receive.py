@@ -28,8 +28,8 @@ def receive_string(ser):
 # Main function
 if __name__ == "__main__":
     # Set the serial port and baudrate
-    port = '/dev/ttyUSB0'  # Change the port number as per your system
-    baudrate = 9600        # Adjust the baudrate as per your settings
+    port = '/dev/ttyACM0'  # Change the port number as per your system
+    baudrate = 57600        # Adjust the baudrate as per your settings
 
     # Initialize the serial port
     ser = init_serial(port, baudrate)
