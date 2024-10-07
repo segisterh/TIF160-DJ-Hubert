@@ -211,10 +211,10 @@ void wave_end_effector(int tempo) {   // -> different tempo -> wave1/wave2/wave3
   delay(100);
 }
 
-void dance(){   // can we dance faster?
+void dance(){ 
   servo_shoulder(1900);
   delay(100);
-  for (int j = 0; j < 10; j++){
+  for (int j = 0; j < 3; j++){
     servo_elbow(2350);
     delay(10);
     servo_body_ex(750, 10);
