@@ -8,10 +8,10 @@ import matplotlib.pyplot as plt
 
 
 volume_threshold = 200
-movement_threshold = 300000000
+movement_threshold = 100000000
 hubert_press_button_delay = 5
 disableCamera = False           # for ex sound testing
-serialCommunication = False 
+serialCommunication = True 
 
 
 # Initialize serial communication
@@ -213,7 +213,7 @@ def decision():
     #perception(cap, detector, hubert_press_button_delay) # just for delay #TODO: tune delay
     music.changeGenre() 
 
-    nSeconds = 5 # over how many seconds to average sound volume. Determines frequency of mood check
+    nSeconds = 18 # over how many seconds to average sound volume. Determines frequency of mood check
 
     while True:
         mood = perception(cap, detector, nSeconds)
@@ -225,19 +225,19 @@ def decision():
         # Hubert instructions
         # first check if change song --> hubert should only press button
         if musicAction == 'changeGenre':
-            music.changeGenre()
             hubert.changeAction('press')
+            music.changeGenre()
 
         # if not press button, hubert instruciton depends on mood
         else: 
             if mood == 'happy':
-                hubert.changeAction('wave')
+                hubert.changeAction('wave1')
 
             elif mood == 'dancy':
-                hubert.changeAction('dancy')
+                hubert.changeAction('dance')
             
             elif mood == 'talking':
-                hubert.changeAction('wave')
+                hubert.changeAction('wave2')
 
             elif mood == 'bored':
                 hubert.changeAction('cheers')
