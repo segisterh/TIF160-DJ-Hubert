@@ -168,8 +168,8 @@ class Music:
         
         self.library = {
             'bee': ['x2mate.com - bee. (128 kbps).mp3'],
-            'spanish': ['ritmo.wav'],
-            'neil': ['SweetCaroline.wav']
+            'spanish': ['ritmo.mp3'],
+            'neil': ['SweetCaroline.mp3']
         } # TODO add more songs, .mp3 or .wav
 
         self.genres = list(self.library.keys())
