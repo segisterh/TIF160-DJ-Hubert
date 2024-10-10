@@ -5,7 +5,6 @@ from cvzone.PoseModule import PoseDetector  # Import PoseDetector properly
 import serial
 import pygame
 import matplotlib.pyplot as plt
-# import time
 
 
 volume_threshold = 200
@@ -49,7 +48,7 @@ def getVolAndMovement(cap, detector, nSeconds = 15):
     # SOUND INITIALIZATION
     format = pyaudio.paInt16  # PCM - Pulse Code Modulation, 16 bits per sample
     samples_per_second = 1000  # Sampling rate (samples per second)
-    samples_per_batch = 500  # Number of samples per buffer
+    samples_per_batch = 200  # Number of samples per buffer
     batches_per_second = int(samples_per_second/samples_per_batch)
 
     audio = pyaudio.PyAudio()
@@ -86,7 +85,7 @@ def getVolAndMovement(cap, detector, nSeconds = 15):
                 return
             movement[i] = np.sum(np.abs(img-oldImg), dtype=np.float32)
             cv2.imshow('Dance_Floor',img)
-            cv2.waitKey(500)  # Wait 500 ms between frames
+            cv2.waitKey(10)  # Wait 500 ms between frames
 
 
 
@@ -189,6 +188,7 @@ class Music:
 
         self.currentSong = self.library[self.currentGenre][np.random.choice(len(self.library[self.currentGenre]))]
         print('Genre changed to:', self.currentGenre, 'and song is:', self.currentSong)
+        playSong('../Music/'+self.currentSong)
 
     def changeSong(self):
         # TODO this might not be used, or maybe only change song when song is finished?
@@ -213,7 +213,7 @@ def decision():
     #perception(cap, detector, hubert_press_button_delay) # just for delay #TODO: tune delay
     music.changeGenre() 
 
-    nSeconds = 10 # over how many seconds to average sound volume. Determines frequency of mood check
+    nSeconds = 5 # over how many seconds to average sound volume. Determines frequency of mood check
 
     while True:
         mood = perception(cap, detector, nSeconds)
