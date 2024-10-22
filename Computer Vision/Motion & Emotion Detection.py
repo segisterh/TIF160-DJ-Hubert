@@ -1,82 +1,98 @@
 import cv2
+import torch
 import numpy as np
-from deepface import DeepFace
 import mediapipe as mp
+from deepface import DeepFace
 
-# Initialize Mediapipe Pose Detection
+# Initialize YOLOv5 model
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
+model.classes = [0]  # Filter for person class only
+
+# Initialize MediaPipe Pose
 mp_pose = mp.solutions.pose
 pose = mp_pose.Pose(static_image_mode=False, min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
-# Emotion Detection Function
-def detect_emotions(img):
+def calculate_motion(landmarks_prev, landmarks_curr, threshold=0.05):
+    if landmarks_prev is not None and landmarks_curr is not None:
+        prev_coords = np.array([[l.x, l.y] for l in landmarks_prev.landmark])
+        curr_coords = np.array([[l.x, l.y] for l in landmarks_curr.landmark])
+        motion = np.linalg.norm(curr_coords - prev_coords)
+        return 1 if motion >= threshold else 0
+    return 0
+
+def detect_emotions(img, face_locations):
+    emotions = []
     try:
-        result = DeepFace.analyze(img, actions=['emotion'], enforce_detection=False)
-        print("DeepFace Analysis Result:", result)  # For debugging
-        if isinstance(result, list):
-            result = result[0]
-        dominant_emotion = result.get('dominant_emotion', None)
-        return dominant_emotion
+        for (top, right, bottom, left) in face_locations:
+            face_img = img[top:bottom, left:right]
+            result = DeepFace.analyze(face_img, actions=['emotion'], enforce_detection=False, detector_backend='opencv')
+            dominant_emotion = result[0]['dominant_emotion'] if isinstance(result, list) else result['dominant_emotion']
+            emotions.append(1 if dominant_emotion in ['happy', 'surprise'] else 0)
     except Exception as e:
         print("Error detecting emotion:", e)
-        return None
+    return emotions
 
-# Function to calculate motion based on landmarks
-def calculate_motion(landmarks):
-    if len(landmarks) > 0:
-        coords = np.array([[l.x, l.y] for l in landmarks])
-        motion = np.std(coords)  # Calculate movement variance
-    else:
-        motion = 0
-    return motion
+def process_frame(frame, prev_landmarks_list):
+    # YOLOv5 person detection
+    results = model(frame)
+    detections = results.xyxy[0].cpu().numpy()
+    
+    current_landmarks_list = []
+    motion_output = []
+    face_locations = []
 
-# Video Pose Detection Function
-def videoDataEx(cap):
-    success, img = cap.read()
-    if not success:
-        print("Failed to capture video frame.")
-        return 0, None, None  # Return 0 movement and None for emotion if no video is captured
+    for detection in detections:
+        if detection[5] == 0:  # Class 0 is person
+            x1, y1, x2, y2 = map(int, detection[:4])
+            person_frame = frame[y1:y2, x1:x2]
+            face_locations.append((y1, x2, y2, x1))  # top, right, bottom, left
+            
+            # MediaPipe pose estimation
+            results_pose = pose.process(cv2.cvtColor(person_frame, cv2.COLOR_BGR2RGB))
+            
+            if results_pose.pose_landmarks:
+                current_landmarks_list.append(results_pose.pose_landmarks)
+                
+                # Calculate motion
+                prev_landmarks = prev_landmarks_list[len(current_landmarks_list)-1] if len(current_landmarks_list) <= len(prev_landmarks_list) else None
+                motion = calculate_motion(prev_landmarks, results_pose.pose_landmarks)
+                
+                motion_output.append(motion)
+                
+                # Draw bounding box
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+            else:
+                motion_output.append(0)  # No motion detected
 
-    # Convert the image to RGB for Mediapipe processing
-    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # Emotion detection
+    emotions = detect_emotions(frame, face_locations)
+    
+    # Fill in emotion output for people without detected faces
+    emotion_output = [1 if i >= len(emotions) else emotions[i] for i in range(len(motion_output))]
 
-    # Pose Detection
-    results = pose.process(img_rgb)
-    landmarks = results.pose_landmarks.landmark if results.pose_landmarks else []
+    return frame, current_landmarks_list, motion_output, emotion_output
 
-    # Calculate motion based on the landmarks
-    motion = calculate_motion(landmarks)
-
-    # Draw the landmarks on the image for visualization
-    if results.pose_landmarks:
-        mp.solutions.drawing_utils.draw_landmarks(img, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-
-    # Perform emotion detection on the same frame
-    dominant_emotion = detect_emotions(img)
-
-    # Display the emotion and motion on the frame
-    cv2.putText(img, f"Emotion: {dominant_emotion}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    cv2.putText(img, f"Motion: {motion:.2f}", (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2)
-
-    # Show the frame
-    cv2.imshow("Dance Floor ppl's Emotion and Motion detector", img)
-    cv2.waitKey(1)  # Wait 1ms between frames
-
-    return motion, img, dominant_emotion
-
-# Main function to run video and combine both functionalities
 def main():
-    cap = cv2.VideoCapture(0)  # Capture video from webcam or replace with video file path
-
-    if not cap.isOpened():
-        print("Error: Could not open video capture")
-        return
+    cap = cv2.VideoCapture(0)  # Use 0 if this is your primary camera
+    prev_landmarks_list = []
 
     while cap.isOpened():
-        movement, img, emotion = videoDataEx(cap)  # Process the frame
-        if img is None:  # If no frame is captured, exit the loop
+        ret, frame = cap.read()
+        if not ret:
+            print("Failed to capture frame")
             break
 
-        print(f"Motion: {movement:.2f}, Emotion: {emotion}")
+        frame, current_landmarks_list, motion_output, emotion_output = process_frame(frame, prev_landmarks_list)
+
+        cv2.imshow('Multi-Person Detection', frame)
+
+        print("Motion Output:", motion_output)
+        print("Emotion Output:", emotion_output)
+
+        prev_landmarks_list = current_landmarks_list
+
+        if cv2.waitKey(1) & 0xFF == 27:  # Press 'Esc' to exit
+            break
 
     cap.release()
     cv2.destroyAllWindows()
