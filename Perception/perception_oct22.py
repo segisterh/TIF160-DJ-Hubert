@@ -349,7 +349,7 @@ def perception(nSeconds, volHistory):
             facesAvg[i] = 0
             nFaces=0
         else:
-            facesAvg[i] = np.sum(mo)/nFaces
+            facesAvg[i] = np.sum(fa)/nFaces
 
         if nBodies > nPeopleMax or nFaces > nPeopleMax:
             nPeopleMax = max(nBodies, nFaces)
