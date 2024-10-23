@@ -3,7 +3,7 @@
 
 // Timing variables for testing state transitions
 unsigned long lastStateTime = 0;
-const unsigned long detectInterval = 1800;  // Change emotion every 18 seconds
+const unsigned long detectInterval = 500;  // Change emotion every 0.5 second
 
 //Servos
 Servo body;

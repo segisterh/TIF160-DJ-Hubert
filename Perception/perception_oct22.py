@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 import mediapipe as mp
 from deepface import DeepFace
 import torch
-
+import time
 
 movement_threshold = 0.2
 hubert_press_button_delay = 5
 disableCamera = False           # for ex sound testing
-serialCommunication = False 
+serialCommunication = True 
 
 maxPeople = 10 # satisfaction-score will depend on #people up to
 
@@ -140,8 +140,8 @@ class Hubert:
             suggestedActions.append('cheers')
         
         for action in suggestedActions:
-            if action not in self.actionHistory[-2:]: # Check so it doesn't do the same thing repeatedly
-                self.addAction(action)
+            # if action not in self.actionHistory[-2:]: # Check so it doesn't do the same thing repeatedly
+            self.addAction(action)
 
     def addAction(self, action):
         self.actions.append(action)
@@ -149,7 +149,8 @@ class Hubert:
     def sendActions(self):
         print('Hubert actions is', self.actions)
         if serialCommunication:
-            send_string(ser, self.actions)
+            long_string = ','.join(self.actions)
+            send_string(ser, long_string)
 
         for i in self.actions:
             self.actionHistory.append(str(i))
@@ -161,19 +162,20 @@ def playSong(song):
     pygame.mixer.music.load(song)
     pygame.mixer.music.play()
 
+
 class Music:
     def __init__(self):
     
-        self.library = {'dance' : ['Avicii - For A Better Day (LYRICS).mp3', 'Avicii - Waiting For Love (Lyric Video).mp3',  'Avicii - Without You (Lyrics) ft. Sandro Cavazza.mp3', 'Avicii - You Make Me (Lyrics).mp3', 'Avicii-Pure Grinding (Lyrics).mp3', 'Calvin Harris & Disciples - How Deep Is Your Love (Lyrics).mp3', 'Calvin Harris - Bounce feat. Kelis HD (Lyrics) With Download Link!.mp3', 'Calvin Harris - Outside (Lyrics) ft. Ellie Goulding.mp3', 'CamelPhat & Elderbrook - Cola (Lyric Video).mp3', 'DMNDS, Fallen Roses - Calabria (Lyrics).mp3', 'Deorro - Five More Hours ft. Chris Brown (Lyrics).mp3', 'FISHER - Losing It (Lyrics version).mp3', 'Galantis - Runaway (U & I) [ Lyrics ].mp3', 'I could be the one [Nicktim] (lyrics) - Avicii ft. Nicky Romero.mp3', 'KVSH - Tokyo Drift Lyrics.mp3', 'Levels - Avicii (Lyrics).mp3', 'MGMT - Electric Feel Lyrics.mp3', 'Röyksopp & Robyn - Do It Again (lyric video).mp3', 'Tove Lo - 2 Die 4 (Lyrics).mp3', 'AYYBO - RIZZ (Lyrics).mp3', 'Alok x Mondello x CERES x Tribbs - LETS GET FKD UP (Lyrics).mp3', 'Calvin Harris - Feel So Close (Lyrics).mp3', 'David Guetta - Turn Me On ft. Nicki Minaj (Lyric Video).mp3', 'David Guetta vs Benny Benassi - Satisfaction (Lyrics)  push me and then just touch me.mp3', 'Halsey - Alone (Calvin Harris RemixAudio) ft. Stefflon Don.mp3', 'LUM!X, Gabry Ponte - Monster (Lyrics).mp3', 'Tiësto & KSHMR feat. Vassy - Secrets (Lyrics).mp3', 'Tiësto feat. 21 Savage, BIA - BOTH  Lyrics.mp3', 'Timmy Trumpet ft. Savage - Freaks (Lyrics).mp3', 'Where Dem Girls At - David Guetta Ft Flo Rida and Nicki Minaj (Lyrics _).mp3'] ,
-'pop' : ['Avicii - Wake Me Up (Official Lyric Video).mp3','Cheat Codes & Dante Klein - Let Me Hold You (Turn Me On) [Official Lyric Video].mp3', "Macklemore & Ryan Lewis - Can't Hold Us (Lyrics) ft. Ray Dalton.mp3", 'Riton x Nightcrawlers ft. Mufasa & Hypeman - Friday (Lyrics) Dopamine Re-Edit.mp3', 'Robin Schulz - Sugar (Lyrics) feat. Francesco Yates.mp3', 'The Weeknd - The Hills (Lyrics).mp3', 'Tiësto - Wasted (Lyric Video) ft. Matthew Koma.mp3', 'Will.i.am, Britney Spears - Scream And Shout (Lyrics) (Tiktok).mp3', 'Alesso - Words (Lyrics) ft. Zara Larsson.mp3', 'Ava Max - Sweet but Psycho (Lyrics).mp3', 'Benjamin Ingrosso - All Night Long (Lyrics).mp3', "Benjamin Ingrosso - Look Who's Laughing Now (Lyrics).mp3", 'Billie Eilish - bad guy (Lyrics).mp3', 'Billie Eilish - bury a friend (Lyrics).mp3', 'Bruno Mars - 24K Magic (Lyrics).mp3', 'Calvin Harris - This Is What You Came For (Lyrics) ft. Rihanna.mp3', 'Daft Punk - Get Lucky (Lyrics) ft. Pharrell Williams, Nile Rodgers.mp3', 'Doja Cat - Paint The Town Red (Lyrics).mp3', 'E.T- Katy Perry Lyrics (without Kayne West).mp3', 'Eminem - The Monster (Lyrics) ft. Rihanna.mp3', 'Imagine Dragons x JID - Enemy (Lyrics).mp3', 'John Newman - Love Me Again (Lyrics).mp3', 'Justin Bieber - What Do You Mean (Lyrics).mp3', 'Katy Perry - Firework (Lyrics).mp3', 'Katy Perry - Last Friday Night (T.G.I.F) (Lyrics).mp3', 'Katy Perry - Swish Swish (Lyrics) ft. Nicki Minaj.mp3', 'Kesha - Die Young (Lyrics).mp3', 'Kesha - TiK ToK (Lyrics).mp3', 'Lady Gaga - Bad Romance (Lyrics).mp3', 'Lady Gaga - Just Dance (Lyrics).mp3', 'Lady Gaga - Poker Face (Lyrics).mp3', 'M.I.A. - Paper Planes (Lyrics).mp3', 'Mark Ronson - Uptown Funk (Lyrics) ft. Bruno Mars.mp3', 'Nicki Minaj Ft. Lil Uzi Vert - Everybody (Lyrics).mp3', 'Pharrell Williams - Happy (Lyrics).mp3', 'Purple Disco Machine & Benjamin Ingrosso - Honey Boy (Lyrics) [feat. Shenseea & Nile Rodgers].mp3', 'Rihanna - Disturbia (Lyrics).mp3', "Rihanna - Don't Stop The Music (Lyrics).mp3", 'Rihanna - Only Girl (In the World) (Lyrics).mp3', 'Rihanna - SOS (Lyrics).mp3', 'Rihanna - Umbrella (Lyrics).mp3', 'Sam Smith - Unholy ft. Kim Petras.mp3', 'Starships - Nicki Minaj - Lyrics.mp3', 'The Black Eyed Peas - I Gotta Feeling (Lyrics).mp3', 'The Weeknd - A lonely night lyrics.mp3'] ,
-'spanish' : ['Con Calma - Daddy Yankee & Snow (Lyrics).mp3', 'ritmo.wav', 'Bad Bunny - Tití Me Preguntó (LetraLyricsSong).mp3'] ,
-'y2k' : ['David Guetta - Sexy Bitch (feat. Akon)  Lyrics.mp3', 'David Guetta Snoop Dogg - Sweat Lyrics.mp3', 'Flo Rida feat. Ke$ha - Right Round  Lyrics.mp3', 'Sean Paul - Get Busy (lyrics).mp3', 'Timbaland - The Way I Are (Lyrics) ft. Keri Hilson, D.O.E..mp3', 'Usher - Yeah! (Lyrics) ft. Lil Jon, Ludacris.mp3', 'Black Eyed Peas - Pump It (Lyrics).mp3', 'Boom Boom Pow - Black Eyed Peas (Lyrics).mp3', 'Britney Spears - Womanizer (Lyrics).mp3', 'David Guetta - Memories (Lyrics) (tiktok) ft. Kid Cudi.mp3', 'Empire State Of Mind - Jay-Z Feat. Alicia Keys  Lyrics On Screen [HD].mp3', 'Far East Movement - Like A G6 (Lyrics) ft. The Cataracs, DEV.mp3', 'Flo Rida - Low ft. T-Pain [Apple Bottom Jeans] (Lyrics).mp3', 'I Got It From My Mama With Lyrics.mp3', 'Iyaz - Replay  Lyrics.mp3', 'Jennifer Lopez - On The Floor (Lyrics) ft. Pitbull.mp3', 'Madonna  - 4 Minutes (Lyrics)  ft. Justin Timberlake & Timbaland.mp3', 'Miley Cyrus - Party In The USA (Lyrics).mp3', 'OutKast - Hey Ya! (Lyrics).mp3', 'Pitbull - Hotel Room Service (Lyrics).mp3', 'Pitbull - Timber (Lyrics) ft. Ke$ha.mp3', 'Rihanna - Pon de Replay (Lyrics).mp3', 'T.I., Rihanna - Live Your Life (Lyrics).mp3', 'Taio Cruz - Break Your Heart (Lyrics) ft. Ludacris.mp3', "Usher - DJ Got Us Fallin' In Love (Lyrics) ft. Pitbull.mp3", 'Wheatus - Teenage Dirtbag (Lyrics).mp3'] ,
-'schlager' : ['Alla flickor.mp3', 'Carola_ Främling.mp3', 'Det gör ont.mp3', 'Håll om mig.mp3', 'Jag ljuger så bra.mp3', 'Markoolio & Linda Bengtzing - Värsta schlagern  LYRICS.mp3', 'När vindarna viskar mitt namn.mp3'] ,
-'boyband' : ["Backstreet Boys - Everybody (Backstreet's Back) (Lyrics).mp3", 'Best Song Ever - One Direction (Lyrics).mp3', "NSYNC - It's Gonna Be Me (Lyrics).mp3", 'One Direction - What Makes You Beautiful(Lyrics).mp3', 'Steal My Girl - One Direction (Lyrics).mp3'] ,
-'s80' : ['Ray Parker Jr. - Ghostbusters (Lyrics).mp3','ABBA - Dancing Queen (Lyrics).mp3', 'ABBA - Does Your Mother Know (Lyrics).mp3', 'ABBA - Gimme! Gimme! Gimme! (A Man After Midnight) [Lyrics].mp3', 'ABBA - Lay All Your Love On Me Lyrics.mp3','Beat It - Michael Jackson (Lyrics).mp3', 'Billy Idol - Dancing With Myself (Lyrics).mp3', 'Bonnie Tyler - Total Eclipse of the Heart (Official Lyric Video).mp3', 'Bruce Springsteen - Dancing in the Dark (Lyrics).mp3', 'Michael Jackson - Billie Jean (Lyrics).mp3', 'Michael Jackson - Smooth Criminal (Lyrics).mp3', 'Michael Jackson - Thriller (2003 Edit) (Lyrics version).mp3', 'Queen - Killer Queen (Official Lyric Video).mp3', 'Rick James - Super Freak (Lyrics HD).mp3', "Rockwell - Somebody's Watching Me Lyrics.mp3", 'Simple Minds - Dont You (Forget About Me) (Lyrics).mp3', 'Toto - Africa (Lyrics).mp3', 'Whitney Houston - I Wanna Dance With Somebody (Lyrics).mp3', 'a-ha - Take On Me (Lyrics).mp3'] ,
-'dubstep' : ['FIRST OF THE YEAR EQUINOX - SKRILLEX (Lyrics).mp3', 'Kanye West - Blood on The Leaves (Lyrics).mp3', 'Kendrick Lamar  HUMBLE (Lyrics  Lyrics Video) (Skrillex Remix).mp3', 'Skrillex - Scary Monsters and Nice Sprites w Lyrics.mp3'] ,
-'rap' : ['cassö, RAYE, D-Block Europe - Prada (Lyrics).mp3','Kanye West - Monster (Lyrics).mp3', 'Kendrick Lamar - Not Like Us (Lyrics) Drake Diss.mp3', 'Opps - Vince Staples ft Yugen Blakrok (Lyrics).mp3', 'Panda lyrics Desiigner.mp3', "SAYGRACE - You Don't Own Me (Lyrics) ft. G-Eazy.mp3"] ,
-'rock' : ['Linkin Park - The Emptiness Machine (Lyrics).mp3', 'Zombie - The Cranberries (Lyrics).mp3'] }
+        self.library = {'dance' : ['Avicii - For A Better Day (LYRICS).mp3', 'Avicii - Waiting For Love (Lyric Video).mp3',  'Avicii - Without You (Lyrics) ft. Sandro Cavazza.mp3', 'Avicii - You Make Me (Lyrics).mp3', 'Avicii-Pure Grinding (Lyrics).mp3', 'Calvin Harris & Disciples - How Deep Is Your Love (Lyrics).mp3', 'Calvin Harris - Bounce feat. Kelis HD (Lyrics) With Download Link!.mp3', 'Calvin Harris - Outside (Lyrics) ft. Ellie Goulding.mp3', 'CamelPhat & Elderbrook - Cola (Lyric Video).mp3', 'DMNDS, Fallen Roses - Calabria (Lyrics).mp3', 'Deorro - Five More Hours ft. Chris Brown (Lyrics).mp3', 'FISHER - Losing It (Lyrics version).mp3', 'Galantis - Runaway (U & I) [ Lyrics ].mp3', 'I could be the one [Nicktim] (lyrics) - Avicii ft. Nicky Romero.mp3', 'KVSH - Tokyo Drift Lyrics.mp3', 'Levels - Avicii (Lyrics).mp3', 'MGMT - Electric Feel Lyrics.mp3', 'Royksopp & Robyn - Do It Again (lyric video).mp3', 'Tove Lo - 2 Die 4 (Lyrics).mp3', 'AYYBO - RIZZ (Lyrics).mp3', 'Alok x Mondello x CERES x Tribbs - LETS GET FKD UP (Lyrics).mp3', 'Calvin Harris - Feel So Close (Lyrics).mp3', 'David Guetta - Turn Me On ft. Nicki Minaj (Lyric Video).mp3', 'David Guetta vs Benny Benassi - Satisfaction (Lyrics)  push me and then just touch me.mp3', 'Halsey - Alone (Calvin Harris RemixAudio) ft. Stefflon Don.mp3', 'LUM!X, Gabry Ponte - Monster (Lyrics).mp3', 'Tiesto & KSHMR feat. Vassy - Secrets (Lyrics).mp3', 'Tiesto feat. 21 Savage, BIA - BOTH  Lyrics.mp3', 'Timmy Trumpet ft. Savage - Freaks (Lyrics).mp3', 'Where Dem Girls At - David Guetta Ft Flo Rida and Nicki Minaj (Lyrics _).mp3'] ,
+        'pop' : ['Avicii - Wake Me Up (Official Lyric Video).mp3','Cheat Codes & Dante Klein - Let Me Hold You (Turn Me On) [Official Lyric Video].mp3', "Macklemore & Ryan Lewis - Can't Hold Us (Lyrics) ft. Ray Dalton.mp3", 'Riton x Nightcrawlers ft. Mufasa & Hypeman - Friday (Lyrics) Dopamine Re-Edit.mp3', 'Robin Schulz - Sugar (Lyrics) feat. Francesco Yates.mp3', 'The Weeknd - The Hills (Lyrics).mp3', 'Tiesto - Wasted (Lyric Video) ft. Matthew Koma.mp3', 'Will.i.am, Britney Spears - Scream And Shout (Lyrics) (Tiktok).mp3', 'Alesso - Words (Lyrics) ft. Zara Larsson.mp3', 'Ava Max - Sweet but Psycho (Lyrics).mp3', 'Benjamin Ingrosso - All Night Long (Lyrics).mp3', "Benjamin Ingrosso - Look Who's Laughing Now (Lyrics).mp3", 'Billie Eilish - bad guy (Lyrics).mp3', 'Billie Eilish - bury a friend (Lyrics).mp3', 'Bruno Mars - 24K Magic (Lyrics).mp3', 'Calvin Harris - This Is What You Came For (Lyrics) ft. Rihanna.mp3', 'Daft Punk - Get Lucky (Lyrics) ft. Pharrell Williams, Nile Rodgers.mp3', 'Doja Cat - Paint The Town Red (Lyrics).mp3', 'E.T- Katy Perry Lyrics (without Kayne West).mp3', 'Eminem - The Monster (Lyrics) ft. Rihanna.mp3', 'Imagine Dragons x JID - Enemy (Lyrics).mp3', 'John Newman - Love Me Again (Lyrics).mp3', 'Justin Bieber - What Do You Mean (Lyrics).mp3', 'Katy Perry - Firework (Lyrics).mp3', 'Katy Perry - Last Friday Night (T.G.I.F) (Lyrics).mp3', 'Katy Perry - Swish Swish (Lyrics) ft. Nicki Minaj.mp3', 'Kesha - Die Young (Lyrics).mp3', 'Kesha - TiK ToK (Lyrics).mp3', 'Lady Gaga - Bad Romance (Lyrics).mp3', 'Lady Gaga - Just Dance (Lyrics).mp3', 'Lady Gaga - Poker Face (Lyrics).mp3', 'M.I.A. - Paper Planes (Lyrics).mp3', 'Mark Ronson - Uptown Funk (Lyrics) ft. Bruno Mars.mp3', 'Nicki Minaj Ft. Lil Uzi Vert - Everybody (Lyrics).mp3', 'Pharrell Williams - Happy (Lyrics).mp3', 'Purple Disco Machine & Benjamin Ingrosso - Honey Boy (Lyrics) [feat. Shenseea & Nile Rodgers].mp3', 'Rihanna - Disturbia (Lyrics).mp3', "Rihanna - Don't Stop The Music (Lyrics).mp3", 'Rihanna - Only Girl (In the World) (Lyrics).mp3', 'Rihanna - SOS (Lyrics).mp3', 'Rihanna - Umbrella (Lyrics).mp3', 'Sam Smith - Unholy ft. Kim Petras.mp3', 'Starships - Nicki Minaj - Lyrics.mp3', 'The Black Eyed Peas - I Gotta Feeling (Lyrics).mp3', 'The Weeknd - A lonely night lyrics.mp3'] ,
+        'spanish' : ['Con Calma - Daddy Yankee & Snow (Lyrics).mp3', 'ritmo.wav', 'Bad Bunny - Tití Me Preguntó (LetraLyricsSong).mp3'] ,
+        'y2k' : ['David Guetta - Sexy Bitch (feat. Akon)  Lyrics.mp3', 'David Guetta Snoop Dogg - Sweat Lyrics.mp3', 'Flo Rida feat. Ke$ha - Right Round  Lyrics.mp3', 'Sean Paul - Get Busy (lyrics).mp3', 'Timbaland - The Way I Are (Lyrics) ft. Keri Hilson, D.O.E..mp3', 'Usher - Yeah! (Lyrics) ft. Lil Jon, Ludacris.mp3', 'Black Eyed Peas - Pump It (Lyrics).mp3', 'Boom Boom Pow - Black Eyed Peas (Lyrics).mp3', 'Britney Spears - Womanizer (Lyrics).mp3', 'David Guetta - Memories (Lyrics) (tiktok) ft. Kid Cudi.mp3', 'Empire State Of Mind - Jay-Z Feat. Alicia Keys  Lyrics On Screen [HD].mp3', 'Far East Movement - Like A G6 (Lyrics) ft. The Cataracs, DEV.mp3', 'Flo Rida - Low ft. T-Pain [Apple Bottom Jeans] (Lyrics).mp3', 'I Got It From My Mama With Lyrics.mp3', 'Iyaz - Replay  Lyrics.mp3', 'Jennifer Lopez - On The Floor (Lyrics) ft. Pitbull.mp3', 'Madonna  - 4 Minutes (Lyrics)  ft. Justin Timberlake & Timbaland.mp3', 'Miley Cyrus - Party In The USA (Lyrics).mp3', 'OutKast - Hey Ya! (Lyrics).mp3', 'Pitbull - Hotel Room Service (Lyrics).mp3', 'Pitbull - Timber (Lyrics) ft. Ke$ha.mp3', 'Rihanna - Pon de Replay (Lyrics).mp3', 'T.I., Rihanna - Live Your Life (Lyrics).mp3', 'Taio Cruz - Break Your Heart (Lyrics) ft. Ludacris.mp3', "Usher - DJ Got Us Fallin' In Love (Lyrics) ft. Pitbull.mp3", 'Wheatus - Teenage Dirtbag (Lyrics).mp3'] ,
+        'schlager' : ['Alla flickor.mp3', 'Carola_ Framling.mp3', 'Det gor ont.mp3', 'Hoall om mig.mp3', 'Jag ljuger soa bra.mp3', 'Markoolio & Linda Bengtzing - Varsta schlagern  LYRICS.mp3', 'Nar vindarna viskar mitt namn.mp3'] ,
+        'boyband' : ["Backstreet Boys - Everybody (Backstreet's Back) (Lyrics).mp3", 'Best Song Ever - One Direction (Lyrics).mp3', "NSYNC - It's Gonna Be Me (Lyrics).mp3", 'One Direction - What Makes You Beautiful(Lyrics).mp3', 'Steal My Girl - One Direction (Lyrics).mp3'] ,
+        's80' : ['Ray Parker Jr. - Ghostbusters (Lyrics).mp3','ABBA - Dancing Queen (Lyrics).mp3', 'ABBA - Does Your Mother Know (Lyrics).mp3', 'ABBA - Gimme! Gimme! Gimme! (A Man After Midnight) [Lyrics].mp3', 'ABBA - Lay All Your Love On Me Lyrics.mp3','Beat It - Michael Jackson (Lyrics).mp3', 'Billy Idol - Dancing With Myself (Lyrics).mp3', 'Bonnie Tyler - Total Eclipse of the Heart (Official Lyric Video).mp3', 'Bruce Springsteen - Dancing in the Dark (Lyrics).mp3', 'Michael Jackson - Billie Jean (Lyrics).mp3', 'Michael Jackson - Smooth Criminal (Lyrics).mp3', 'Michael Jackson - Thriller (2003 Edit) (Lyrics version).mp3', 'Queen - Killer Queen (Official Lyric Video).mp3', 'Rick James - Super Freak (Lyrics HD).mp3', "Rockwell - Somebody's Watching Me Lyrics.mp3", 'Simple Minds - Dont You (Forget About Me) (Lyrics).mp3', 'Toto - Africa (Lyrics).mp3', 'Whitney Houston - I Wanna Dance With Somebody (Lyrics).mp3', 'a-ha - Take On Me (Lyrics).mp3'] ,
+        'dubstep' : ['FIRST OF THE YEAR EQUINOX - SKRILLEX (Lyrics).mp3', 'Kanye West - Blood on The Leaves (Lyrics).mp3', 'Kendrick Lamar  HUMBLE (Lyrics  Lyrics Video) (Skrillex Remix).mp3', 'Skrillex - Scary Monsters and Nice Sprites w Lyrics.mp3'] ,
+        'rap' : ['casso, RAYE, D-Block Europe - Prada (Lyrics).mp3','Kanye West - Monster (Lyrics).mp3', 'Kendrick Lamar - Not Like Us (Lyrics) Drake Diss.mp3', 'Opps - Vince Staples ft Yugen Blakrok (Lyrics).mp3', 'Panda lyrics Desiigner.mp3', "SAYGRACE - You Don't Own Me (Lyrics) ft. G-Eazy.mp3"] ,
+        'rock' : ['Linkin Park - The Emptiness Machine (Lyrics).mp3', 'Zombie - The Cranberries (Lyrics).mp3'] }
         self.genres = list(self.library.keys())
         self.genreScores = {'pop':10, 'dance':10, 'spanish':9,'y2k':10, 'schlager':6, 'boyband':6 , 's80':6, 'dubstep':4, 'rap':4, 'rock':4}
         self.triedGenres = set([])
@@ -221,7 +223,6 @@ class Music:
         return changeGenre, changeSong, howLongSameGenre
 
 
-
     def changeGenre(self, satisfactionHistory, howLongSameGenre): 
         if len(satisfactionHistory)>1 and howLongSameGenre >0:
             genreScore = np.sum(np.array(satisfactionHistory[-howLongSameGenre:]))/howLongSameGenre
@@ -252,48 +253,46 @@ class Music:
         self.library[self.currentGenre].pop(randomIndex) # remove song from list, to prevent same song being played twice
 
 
-def recordSurroundings(nSeconds = 15):
-    # SOUND INITIALIZATION
-    samples_per_second = 1000  # Sampling rate (samples per second)
-    samples_per_batch = 200  # Number of samples per buffer
-    batches_per_second = int(samples_per_second/samples_per_batch)
-    
-    # INITIALIZE AUDIO  
-    format = pyaudio.paInt16  # PCM - Pulse Code Modulation, 16 bits per sample
+def recordSurroundings(nSeconds=15):
+    samples_per_second = 1000
+    samples_per_batch = 200
+    batches_per_second = int(samples_per_second / samples_per_batch)
+
+    # Initialize Audio
+    format = pyaudio.paInt16
     audio = pyaudio.PyAudio()
-    stream = audio.open(format=format, channels=1,
-                        rate=samples_per_second, input=True,
-                        frames_per_buffer=samples_per_batch)
+    stream = audio.open(format=format, channels=1, rate=samples_per_second, input=True, frames_per_buffer=samples_per_batch)
 
-    volume = np.zeros(nSeconds*batches_per_second)
-    #movement = np.zeros(nSeconds*batches_per_second)
+    volume = np.zeros(nSeconds * batches_per_second)
 
-    # INITIALIZE CV
     if not disableCamera:
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(2)
+        if not cap.isOpened():
+            print("Error: Could not open camera.")
+            return motion, faces
+
     prev_landmarks_list = []
     motion = []
-    faces =  []
+    faces = []
 
-    # AUDIO LOOP
-    for i in range(nSeconds*batches_per_second):
+    for i in range(nSeconds * batches_per_second):
         data = stream.read(samples_per_batch, exception_on_overflow=False)
-        # abs because negative values occur for negative waves
         audio_data = np.frombuffer(data, dtype=np.int16)
         audio_data = np.abs(audio_data)
-        # Volume = RMS
         volume[i] = np.sqrt(np.mean(audio_data) ** 2)
 
-        # CV
         if not disableCamera:
             ret, frame = cap.read()
-
             if not ret:
-                print("Failed to capture frame")
+                print("Error: Failed to capture frame.")
                 break
-            
+
             frame, current_landmarks_list, motion_output, emotion_output = process_frame(frame, prev_landmarks_list)
-            #cv2.imshow('Multi-Person Detection', frame)
+            cv2.imshow('Family Dance Floor', frame)
+            
+            # Wait for at least 1 ms, to refresh and check for window events
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
             if not motion_output: # if list is empty
                 motion_output=['nothing']
@@ -301,13 +300,11 @@ def recordSurroundings(nSeconds = 15):
                 emotion_output = ['nothing']
             motion.append(motion_output)
             faces.append(emotion_output) 
-            
             prev_landmarks_list = current_landmarks_list
 
-    #cap.release()
     if not disableCamera:
         cap.release()
-        #cv2.destroyAllWindows()
+        cv2.destroyAllWindows()
 
     averageVol = np.mean(volume)
     stream.stop_stream()
@@ -315,7 +312,6 @@ def recordSurroundings(nSeconds = 15):
     audio.terminate()
 
     return averageVol, motion, faces
-
 
 
 # Perception Function
@@ -358,7 +354,8 @@ def perception(nSeconds, volHistory):
         vol = vol/abs(vol)
     satisfaction = nPeopleMax/maxPeople*peopleWeight + facesWeight * np.mean(facesAvg) + bodiesWeight * np.mean(motionAvg) + vol *volumeWeight
     if nPeopleMax == 0:
-        satisfaction = 'empty'
+        # satisfaction = 'empty'
+        satisfaction = 0
     print('satisfaction', satisfaction,'\t(maxPeople:', nPeopleMax/maxPeople*peopleWeight,' + faces:', facesWeight * np.mean(facesAvg),' + bodies:', bodiesWeight * np.mean(motionAvg),'+ vol:',vol*volumeWeight,')')
 
     volHistory.append(currentVol)
@@ -372,7 +369,7 @@ def decision():
     music = Music()
     
     
-    hubert.addAction('press')
+    # hubert.addAction('press')
     #perception(cap, detector, hubert_press_button_delay) # just for delay #TODO: tune delay
 
     nSeconds = 18 # over how many seconds to average sound volume. Determines frequency of mood check
@@ -385,10 +382,10 @@ def decision():
     while True:
         satisfaction, volHistory = perception(nSeconds, volHistory)
         changeOverride = False
-        if satisfaction == 'empty':
-            playSong('hubertPhrases/cheers.mp3')
-            satisfaction = 0
-            changeOverride  =True
+        # if satisfaction == 'empty':
+        #     playSong('hubertPhrases/cheers.mp3')
+        #     satisfaction = 0
+        #     changeOverride  =True
         
         # Music instructions
         changeGenre, changeSong, howLongSameGenre = music.musicDecision(satisfaction, satisfactionHistory, musicHistory, changeOverride) # pressButton is true if genre or song changes
@@ -402,20 +399,25 @@ def decision():
 
         # Send all actions to Hubert in one go
         hubert.sendActions()
-        #recordSurroundings(5) #delay
+        # recordSurroundings(5) #delay
 
-        if changeGenre: # this is done outside of the class so we can add a delay before
-            music.changeGenre(satisfactionHistory, howLongSameGenre)
-        elif changeSong:
-            music.changeSong(satisfactionHistory, howLongSameGenre)
+        start_time = time.time()
 
+        while True:
+            current_time = time.time()
+            if current_time - start_time >= 6.5: 
+                if changeGenre: # this is done outside of the class so we can add a delay before
+                    music.changeGenre(satisfactionHistory, howLongSameGenre)
+                elif changeSong:
+                    music.changeSong(satisfactionHistory, howLongSameGenre)
+                break 
+            time.sleep(0.1) 
 
         '''if len(musicHistory)>20: # remove history older than 20 timesteps 
             musicHistory.pop()
             satisfactionHistory.pop()
             volHistory.pop()'''
         
-
         if cv2.waitKey(1) & 0xFF == ord('q'):  # Press 'q' to quit the loop
             break
 
@@ -443,6 +445,3 @@ if __name__ == "__main__":
     finally:
         if ser is not None:
             ser.close()  # Close the serial connection before exiting
-
-
-
