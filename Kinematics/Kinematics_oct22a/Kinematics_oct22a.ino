@@ -213,6 +213,8 @@ void wave_end_effector(int tempo) {   // -> different tempo -> wave1/wave2/wave3
   }
   servo_shoulder(pos_init[3]);
   delay(100);
+  servo_elbow(pos_init[4]);
+  delay(100);
 }
 
 void dance(){ 
@@ -312,16 +314,17 @@ void update_instructions(String instrucStr) {
     newState = WAITING;
   }
 
-  if (currentState != newState){
+//  if (currentState != newState){
+  if (newState != CHEERS){
     currentState = newState;
     // Perform actions based on the new emotion
     switch (currentState) {
       case PRESS:
         press_button();
         break;
-      case CHEERS:
-        cheers();
-        break;
+//      case CHEERS:
+//        cheers();
+//        break;
       case WAVE:
         wave_end_effector(tempo);  // Pass the tempo for the wave action
         break;
@@ -329,7 +332,10 @@ void update_instructions(String instrucStr) {
         dance();
         break;
     }
-  }
+  } else if (currentState != newState){
+    currentState = newState;
+    cheers();
+    }
 }
 
 void setup() {
